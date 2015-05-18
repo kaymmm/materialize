@@ -5,7 +5,9 @@
       var defaults = {
         menuWidth: 240,
         edge: 'left',
-        closeOnClick: false
+        closeOnClick: false,
+        navOpened: undefined,
+        navClosed: undefined,
       };
       options = $.extend(defaults, options);
 
@@ -115,6 +117,10 @@
                 }
               });
           }
+
+          // Callback for closing the sideNav
+          if (typeof(options.navClosed) === 'function')
++                options.navClosed();
         }
 
 
@@ -282,6 +288,10 @@
                   panning = false;
                 }
               });
+
+              // Callback for opening sideNav
+              if (typeof(options.navOpened) === 'function')
++                options.navOpened();
             }
 
             return false;
