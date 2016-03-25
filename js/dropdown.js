@@ -73,17 +73,29 @@
         activates.css('white-space', 'nowrap');
       }
 
-      // Below Origin
-      var verticalOffset = 0;
-      if (options.belowOrigin === true) {
-        verticalOffset = origin.height();
-      }
-
       // Offscreen detection
+      var windowHeight = window.innerHeight;
+      var originHeight = origin.innerHeight();
       var offsetLeft = origin.offset().left;
       var offsetTop = origin.offset().top - $(window).scrollTop();
       var currAlignment = options.alignment;
-      var activatesLeft, gutterSpacing;
+      var gutterSpacing = 0;
+      var leftPosition = 0;
+
+      // Below Origin
+      var verticalOffset = 0;
+      if (options.belowOrigin === true) {
+        verticalOffset = originHeight;
+      }
+
+      // Check for scrolling positioned container.
+      var scrollOffset = 0;
+      var wrapper = origin.parent();
+      if (!wrapper.is('body') && wrapper[0].scrollHeight > wrapper[0].clientHeight) {
+        scrollOffset = wrapper[0].scrollTop;
+      }
+
+
       if (offsetLeft + activates.innerWidth() > $(window).width()) {
         // Dropdown goes past screen on right, force right alignment
         currAlignment = 'right';
@@ -93,11 +105,18 @@
         currAlignment = 'left';
       }
       // Vertical bottom offscreen detection
-      if (offsetTop + activates.innerHeight() > window.innerHeight) {
-        if (!verticalOffset) {
-          verticalOffset += origin.innerHeight();
+      if (offsetTop + activates.innerHeight() > windowHeight) {
+        // If going upwards still goes offscreen, just crop height of dropdown.
+        if (offsetTop + originHeight - activates.innerHeight() < 0) {
+          var adjustedHeight = windowHeight - offsetTop - verticalOffset;
+          activates.css('max-height', adjustedHeight);
+        } else {
+          // Flow upwards.
+          if (!verticalOffset) {
+            verticalOffset += originHeight;
+          }
+          verticalOffset -= activates.innerHeight();
         }
-        verticalOffset -= activates.innerHeight();
       }
 
       // Handle edge alignment
@@ -114,7 +133,7 @@
       // Position dropdown
       activates.css({
         position: 'absolute',
-        top: origin.position().top + verticalOffset,
+        top: origin.position().top + verticalOffset + scrollOffset,
         left: leftPosition
       });
 
@@ -138,6 +157,7 @@
       activates.fadeOut(options.outDuration);
       activates.removeClass('active');
       origin.removeClass('active');
+      setTimeout(function() { activates.css('max-height', ''); }, options.outDuration);
     }
 
     // Hover
